@@ -47,10 +47,10 @@ def remove_widget_state(cell):
 
 # Cell
 # Matches any cell that has a `show_doc` or an `#export` in it
-_re_cell_to_hide = r's*show_doc\(|^\s*#\s*export\s+|^\s*#\s*hide_input\s+'
+_re_cell_to_hide = re.compile(r's*show_doc\(|^\s*#\s*export\s+|^\s*#\s*hide_input\s+|^\s*#\s*hide-input\s+', re.IGNORECASE | re.MULTILINE)
 
 # Matches any cell with `#hide_output` or `#hide_output`
-_re_hide_output = r'^\s*#\s*hide-output\s+|^\s*#\s*hide_output\s+'
+_re_hide_output = re.compile(r'^\s*#\s*hide-output\s+|^\s*#\s*hide_output\s+', re.IGNORECASE | re.MULTILINE)
 
 # Cell
 def hide_cells(cell):
@@ -200,13 +200,13 @@ def escape_latex(cell):
 
 # Cell
 #Matches any cell with #collapse or #collapse_hide
-_re_cell_to_collapse_closed = re.compile(r'^\s*#\s*(collapse|collapse_hide|collapse-hide)\s+')
+_re_cell_to_collapse_closed = re.compile(r'^\s*#\s*(collapse|collapse_hide|collapse-hide)\s+',  re.IGNORECASE | re.MULTILINE)
 
 #Matches any cell with #collapse_show
-_re_cell_to_collapse_open = re.compile(r'^\s*#\s*(collapse_show|collapse-show)\s+')
+_re_cell_to_collapse_open = re.compile(r'^\s*#\s*(collapse_show|collapse-show)\s+',  re.IGNORECASE | re.MULTILINE)
 
 #Matches any cell with #collapse_output or #collapse-output
-_re_cell_to_collapse_output = re.compile(r'^\s*#\s*(collapse_output|collapse-output)\s+')
+_re_cell_to_collapse_output = re.compile(r'^\s*#\s*(collapse_output|collapse-output)\s+',  re.IGNORECASE | re.MULTILINE)
 
 # Cell
 def collapse_cells(cell):
@@ -306,12 +306,28 @@ _re_title_summary = re.compile(r"""
 ([^\n]*)   # Catching group for any character except a new line
 """, re.VERBOSE)
 
+#export
+_re_title_only = re.compile(r"""
+# Catches the title presented as # Title without a summary
+^\s*       # Beginning of text followe by any number of whitespace
+\#\s+      # # followed by one or more of whitespace
+([^\n]*)   # Catching group for any character except a new line
+(?:\n|$)    # New line or end of text
+""", re.VERBOSE)
+
 _re_properties = re.compile(r"""
 ^-\s+      # Beginnig of a line followed by - and at least one space
 (.*?)      # Any pattern (shortest possible)
 \s*:\s*    # Any number of whitespace, :, any number of whitespace
 (.*?)$     # Any pattern (shortest possible) then end of line
 """, re.MULTILINE | re.VERBOSE)
+
+_re_mdlinks = re.compile(r"\[(.+)]\((.+)\)", re.MULTILINE)
+
+# Cell
+def _md2html_links(s):
+    'Converts markdown links to html links'
+    return _re_mdlinks.sub(r"<a href='\2'>\1</a>", s)
 
 # Cell
 def get_metadata(cells):
@@ -323,13 +339,29 @@ def get_metadata(cells):
                 cells.pop(i)
                 attrs = {k:v for k,v in _re_properties.findall(cell['source'])}
                 return {'keywords': 'fastai',
-                        'summary' : match.groups()[1],
+                        'summary' : _md2html_links(match.groups()[1]),
                         'title'   : match.groups()[0],
+                        **attrs}
+            elif _re_title_only.search(cell['source']) is not None:
+                title = _re_title_only.search(cell['source']).groups()[0]
+                cells.pop(i)
+                attrs = {k:v for k,v in _re_properties.findall(cell['source'])}
+                return {'keywords': 'fastai',
+                        'title'   : title,
                         **attrs}
 
     return {'keywords': 'fastai',
-            'summary' : 'summary',
             'title'   : 'Title'}
+
+# Cell
+_re_mod_export = re.compile(r"^\s*#\s*export[s]? [^\S\r\n]*(\S+)\s*$", re.IGNORECASE | re.MULTILINE)
+
+def _gather_export_mods(cells):
+    res = []
+    for cell in cells:
+        if check_re(cell, _re_mod_export) is not None:
+            res.append(check_re(cell, _re_mod_export).groups()[0])
+    return res
 
 # Cell
 _re_cell_to_execute = ReLibName(r"^\s*show_doc\(([^\)]*)\)|^from LIB_NAME\.", re.MULTILINE)
@@ -344,10 +376,11 @@ class ExecuteShowDocPreprocessor(ExecutePreprocessor):
         return cell, resources
 
 # Cell
-def _import_show_doc_cell(mod=None):
+def _import_show_doc_cell(mods=None):
     "Add an import show_doc cell."
     source = f"#export\nfrom nbdev.showdoc import show_doc"
-    if mod:  source += f"\nfrom {Config().lib_name}.{mod} import *"
+    if mods is not None:
+        for mod in mods: source += f"\nfrom {Config().lib_name}.{mod} import *"
     return {'cell_type': 'code',
             'execution_count': None,
             'metadata': {'hide_input': True},
@@ -356,7 +389,8 @@ def _import_show_doc_cell(mod=None):
 
 def execute_nb(nb, mod=None, metadata=None, show_doc_only=True):
     "Execute `nb` (or only the `show_doc` cells) with `metadata`"
-    nb['cells'].insert(0, _import_show_doc_cell(mod))
+    mods = ([] if mod is None else [mod]) + _gather_export_mods(nb['cells'])
+    nb['cells'].insert(0, _import_show_doc_cell(mods))
     ep_cls = ExecuteShowDocPreprocessor if show_doc_only else ExecutePreprocessor
     ep = ep_cls(timeout=600, kernel_name='python3')
     metadata = metadata or {}
@@ -407,7 +441,7 @@ def write_tmpls():
     "Write out _config.yml and _data/topnav.yml using templates"
     cfg = Config()
     write_tmpl(config_tmpl, 'user lib_name title copyright description', cfg, cfg.doc_path/'_config.yml')
-    write_tmpl(topnav_tmpl, 'user lib_name', cfg, cfg.doc_path/'_data'/'topnav.yml')
+    write_tmpl(topnav_tmpl, 'host git_url', cfg, cfg.doc_path/'_data'/'topnav.yml')
     write_tmpl(makefile_tmpl, 'nbs_path lib_name', cfg, cfg.config_file.parent/'Makefile')
 
 # Cell
