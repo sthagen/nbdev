@@ -1,4 +1,7 @@
-import os,re,json,glob,collections,pickle,shutil,nbformat,inspect,yaml,tempfile,enum,stat,time,random
+from fastcore.utils import *
+from fastcore.test import *
+
+import os,re,json,glob,collections,pickle,shutil,nbformat,inspect,yaml,tempfile,enum,stat,time,random,sys
 import importlib.util
 from pdb import set_trace
 from configparser import ConfigParser
@@ -8,8 +11,6 @@ from typing import Union,Optional
 from nbformat.sign import NotebookNotary
 from functools import partial,lru_cache
 from base64 import b64decode,b64encode
-
-def test_eq(a,b): assert a==b, f'{a}, {b}'
 
 def save_config_file(file, d):
     "Write settings dict to a new config file, or overwrite the existing one."
@@ -61,82 +62,6 @@ def create_config(host, lib_name, user, path='.', cfg_name='settings.ini', branc
     config = {**config, **kwargs}
     save_config_file(Path(path)/cfg_name, config)
 
-def last_index(x, o):
-    "Finds the last index of occurence of `x` in `o` (returns -1 if no occurence)"
-    try: return next(i for i in reversed(range(len(o))) if o[i] == x)
-    except StopIteration: return -1
-
-def in_ipython():
-    "Check if the code is running in the ipython environment (jupyter including)"
-    program_name = os.path.basename(os.getenv('_', ''))
-    if ('jupyter-notebook' in program_name or # jupyter-notebook
-        'ipython'          in program_name or # ipython
-        'JPY_PARENT_PID'   in os.environ):    # ipython-notebook
-        return True
-    else:
-        return False
-
-IN_IPYTHON = in_ipython()
-
-def in_colab():
-    "Check if the code is running in Google Colaboratory"
-    try:
-        from google import colab
-        return True
-    except: return False
-
-IN_COLAB = in_colab()
-
-def in_notebook():
-    "Check if the code is running in a jupyter notebook"
-    if in_colab(): return True
-    try:
-        shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell': return True   # Jupyter notebook, Spyder or qtconsole
-        elif shell == 'TerminalInteractiveShell': return False  # Terminal running IPython
-        else: return False  # Other type (?)
-    except NameError: return False      # Probably standard Python interpreter
-
-IN_NOTEBOOK = in_notebook()
-
-def compose(*funcs, order=None):
-    "Create a function that composes all functions in `funcs`, passing along remaining `*args` and `**kwargs` to all"
-    if len(funcs)==0: return noop
-    if len(funcs)==1: return funcs[0]
-    def _inner(x, *args, **kwargs):
-        for f in funcs: x = f(x, *args, **kwargs)
-        return x
-    return _inner
-
-from multiprocessing import Process, Queue
-import concurrent.futures
-
-def num_cpus():
-    "Get number of cpus"
-    try:                   return len(os.sched_getaffinity(0))
-    except AttributeError: return os.cpu_count()
-
-class ProcessPoolExecutor(concurrent.futures.ProcessPoolExecutor):
-    "Like `concurrent.futures.ProcessPoolExecutor` but handles 0 `max_workers`."
-    def __init__(self, max_workers=None, on_exc=print, **kwargs):
-        self.not_parallel = max_workers==0
-        self.on_exc = on_exc
-        if self.not_parallel: max_workers=1
-        super().__init__(max_workers, **kwargs)
-
-    def map(self, f, items, *args, **kwargs):
-        g = partial(f, *args, **kwargs)
-        if self.not_parallel: return map(g, items)
-        try: return super().map(g, items)
-        except Exception as e: self.on_exc(e)
-
-def parallel(f, items, *args, n_workers=None, **kwargs):
-    "Applies `func` in parallel to `items`, using `n_workers`"
-    if n_workers is None: n_workers = min(16, num_cpus())
-    with ProcessPoolExecutor(n_workers) as ex:
-        r = ex.map(f,items, *args, **kwargs)
-        return list(r)
-
 #export
 class ReLibName():
     "Regex expression that's compiled at first use but not before since it needs `Config().lib_name`"
@@ -147,3 +72,16 @@ class ReLibName():
         self.pat = self.pat.replace('LIB_NAME', Config().lib_name)
         if self._re is None: self._re = re.compile(self.pat, self.flags)
         return self._re
+
+def call_cb(cb_name, *args):
+    "Calls `cb_name` from the `nbdev_callbacks` module but won't fail if it doesn't exist"
+    if 'nbdev_callbacks' not in globals():
+        _sys_path=sys.path
+        try:
+            cfg=Config()
+            sys.path=[str(cfg.config_file.parent/cfg.get('callbacks_path', '.'))]
+            try: import nbdev_callbacks
+            except: nbdev_callbacks={}
+        finally: sys.path=_sys_path
+    if not hasattr(nbdev_callbacks, cb_name): return args[0] if args else None
+    return getattr(nbdev_callbacks, cb_name)(*args)
