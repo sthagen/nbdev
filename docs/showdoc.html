@@ -2,6 +2,7 @@
 
 title: Show doc
 
+
 keywords: fastai
 sidebar: home_sidebar
 
@@ -37,7 +38,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>All the automatic documentation of functions and classes are generated with the <a href="/showdoc#show_doc"><code>show_doc</code></a> function. It displays the name, arguments, docstring along with a link to the source code on GitHub.</p>
+<p>All the automatic documentation of functions and classes are generated with the <a href="/showdoc.html#show_doc"><code>show_doc</code></a> function. It displays the name, arguments, docstring along with a link to the source code on GitHub.</p>
 
 </div>
 </div>
@@ -216,10 +217,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">try_external_doc_link</span><span class="p">(</span><span class="s1">&#39;TfmdDL&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fastai2&#39;</span><span class="p">]),</span> <span class="s1">&#39;https://dev.fast.ai/data.core#TfmdDL&#39;</span><span class="p">)</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">try_external_doc_link</span><span class="p">(</span><span class="s1">&#39;Learner&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fastai2&#39;</span><span class="p">]),</span> <span class="s1">&#39;https://dev.fast.ai/learner#Learner&#39;</span><span class="p">)</span>
-<span class="c1">#Only works for packages built with nbdev right now</span>
-<span class="k">assert</span> <span class="n">try_external_doc_link</span><span class="p">(</span><span class="s1">&#39;Tensor&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;torch&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">try_external_doc_link</span><span class="p">(</span><span class="s1">&#39;get_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;nbdev&#39;</span><span class="p">]),</span> <span class="s1">&#39;https://nbdev.fast.ai/sync#get_name&#39;</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -247,7 +245,59 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="doc_link" class="doc_header"><code>doc_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L48" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>doc_link</code>(<strong><code>name</code></strong>, <strong><code>include_bt</code></strong>=<em><code>True</code></em>)</p>
+<h4 id="is_doc_name" class="doc_header"><code>is_doc_name</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L48" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>is_doc_name</code>(<strong><code>name</code></strong>)</p>
+</blockquote>
+<p>Test if <code>name</code> corresponds to a notebook that could be converted to a doc page</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">is_doc_name</span><span class="p">(</span><span class="s1">&#39;flag_tests&#39;</span><span class="p">),</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">is_doc_name</span><span class="p">(</span><span class="s1">&#39;flags&#39;</span><span class="p">),</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">is_doc_name</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">),</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">is_doc_name</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">),</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="doc_link" class="doc_header"><code>doc_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L55" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>doc_link</code>(<strong><code>name</code></strong>, <strong><code>include_bt</code></strong>=<em><code>True</code></em>)</p>
 </blockquote>
 <p>Create link to documentation for <code>name</code>.</p>
 
@@ -263,12 +313,67 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>This function will generate link for a module (pointing to the html conversion of the notebook that created it) and functions (pointing to the hmtl conversion of the notebook they were defined, with the first anchor found before). If the function/module is not part of the library you are writing, it will call the function <code>custom_doc_links</code> generated in <code>_nbdev</code> (you can customize it to your needs) and just return the name between backticks if that function returns <code>None</code>.</p>
-<p>For instance, fastai2 has the following <code>custom_doc_links</code> that tries to find a doc link for <code>name</code> in fastcore then nbdev (in this order):</p>
+<p>This function will generate links for modules (pointing to the html conversion of the corresponding notebook) and functions (pointing to the html conversion of the notebook where they were defined, with the first anchor found before). If the function/module is not part of the library you are writing, it will call the function <code>custom_doc_links</code> generated in <code>_nbdev</code> (you can customize it to your needs) and just return the name between backticks if that function returns <code>None</code>.</p>
+<p>For instance, fastai has the following <code>custom_doc_links</code> that tries to find a doc link for <code>name</code> in fastcore then nbdev (in this order):</p>
 <div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">custom_doc_links</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> 
     <span class="kn">from</span> <span class="nn">nbdev.showdoc</span> <span class="kn">import</span> <span class="n">try_external_doc_link</span>
     <span class="k">return</span> <span class="n">try_external_doc_link</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fastcore&#39;</span><span class="p">,</span> <span class="s1">&#39;nbdev&#39;</span><span class="p">])</span>
 </pre></div>
+<p>Please note that module links only work if your notebook names "correspond" to your module names:</p>
+<table>
+<thead><tr>
+<th>Notebook name</th>
+<th>Doc name</th>
+<th>Module name</th>
+<th>Module file</th>
+<th>Can doc link?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>export.ipynb</td>
+<td>export.html</td>
+<td>export</td>
+<td>export.py</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>00_export.ipynb</td>
+<td>export.html</td>
+<td>export</td>
+<td>export.py</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>00a_export.ipynb</td>
+<td>export.html</td>
+<td>export</td>
+<td>export.py</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>export_1.ipynb</td>
+<td>export_1.html</td>
+<td>export</td>
+<td>export.py</td>
+<td>No</td>
+</tr>
+<tr>
+<td>03_data.core.ipynb</td>
+<td>data.core.html</td>
+<td>data.core</td>
+<td>data/core.py</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>03_data_core.ipynb</td>
+<td>data_core.html</td>
+<td>data.core</td>
+<td>data/core.py</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
 
 </div>
 </div>
@@ -280,12 +385,13 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`export`](/export)&#39;</span><span class="p">)</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;DocsTestClass&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`DocsTestClass`](/export#DocsTestClass)&#39;</span><span class="p">)</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;DocsTestClass.test&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`DocsTestClass.test`](/export#DocsTestClass.test)&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`export`](/export.html)&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;DocsTestClass&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`DocsTestClass`](/export.html#DocsTestClass)&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;DocsTestClass.test&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;[`DocsTestClass.test`](/export.html#DocsTestClass.test)&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;Tenso&#39;</span><span class="p">),</span><span class="s1">&#39;`Tenso`&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;_nbdev&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;`_nbdev`&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;__main__&#39;</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;`__main__`&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">doc_link</span><span class="p">(</span><span class="s1">&#39;flags&#39;</span><span class="p">),</span> <span class="s1">&#39;`flags`&#39;</span><span class="p">)</span> <span class="c1"># we won&#39;t have a flags doc page even though we do have a flags module</span>
 </pre></div>
 
     </div>
@@ -320,7 +426,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="add_doc_links" class="doc_header"><code>add_doc_links</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L84" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>add_doc_links</code>(<strong><code>text</code></strong>)</p>
+<h4 id="add_doc_links" class="doc_header"><code>add_doc_links</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L91" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>add_doc_links</code>(<strong><code>text</code></strong>, <strong><code>elt</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Search for doc links for any item between backticks in <code>text</code> and isnter them</p>
 
@@ -349,9 +455,93 @@ nb_path: "nbs/02_showdoc.ipynb"
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">tst</span> <span class="o">=</span> <span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;This is an example of `DocsTestClass`&#39;</span><span class="p">)</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s2">&quot;This is an example of [`DocsTestClass`](/export#DocsTestClass)&quot;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s2">&quot;This is an example of [`DocsTestClass`](/export.html#DocsTestClass)&quot;</span><span class="p">)</span>
 <span class="n">tst</span> <span class="o">=</span> <span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;This is an example of [`DocsTestClass`](old_link.html)&#39;</span><span class="p">)</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s2">&quot;This is an example of [`DocsTestClass`](/export#DocsTestClass)&quot;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s2">&quot;This is an example of [`DocsTestClass`](/export.html#DocsTestClass)&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Names in backticks will not be converted to links if <code>elt</code> has a parameter of the same name</p>
+
+</div>
+</div>
+</div>
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">export</span><span class="p">):</span>
+    <span class="s2">&quot;Test func that uses &#39;export&#39; as a parameter name and has `export` in its doc string&quot;</span>
+<span class="k">assert</span> <span class="s1">&#39;[`export`](/export.html)&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">add_doc_links</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Names in backticks <em>used in markdown links</em> will be updated like normal</p>
+
+</div>
+</div>
+</div>
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">export</span><span class="p">):</span>
+    <span class="s2">&quot;Test func that uses &#39;export&#39; as a parameter name and has [`export`]() in its doc string&quot;</span>
+<span class="k">assert</span> <span class="s1">&#39;[`export`](/export.html)&#39;</span> <span class="ow">in</span> <span class="n">add_doc_links</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>If <code>elt</code> is a class, <a href="/showdoc.html#add_doc_links"><code>add_doc_links</code></a> looks at parameter names used in <code>__init__</code></p>
+
+</div>
+</div>
+</div>
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">T</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_doc_links</span><span class="p">):</span> <span class="k">pass</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;Lets talk about `add_doc_links`&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;Lets talk about [`add_doc_links`](/showdoc.html#add_doc_links)&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;Lets talk about `add_doc_links`&#39;</span><span class="p">,</span> <span class="n">T</span><span class="p">),</span> <span class="s1">&#39;Lets talk about `add_doc_links`&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;Lets talk about `doc_link`&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;Lets talk about [`doc_link`](/showdoc.html#doc_link)&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">add_doc_links</span><span class="p">(</span><span class="s1">&#39;Lets talk about `doc_link`&#39;</span><span class="p">,</span> <span class="n">T</span><span class="p">),</span> 
+        <span class="s1">&#39;Lets talk about [`doc_link`](/showdoc.html#doc_link)&#39;</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -392,7 +582,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_source_link" class="doc_header"><code>get_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L103" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_source_link</code>(<strong><code>func</code></strong>)</p>
+<h4 id="get_source_link" class="doc_header"><code>get_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L114" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_source_link</code>(<strong><code>func</code></strong>)</p>
 </blockquote>
 <p>Return link to <code>func</code> in source code</p>
 
@@ -445,7 +635,72 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_nb_source_link" class="doc_header"><code>get_nb_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L126" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_nb_source_link</code>(<strong><code>func</code></strong>, <strong><code>local</code></strong>=<em><code>False</code></em>, <strong><code>is_name</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="colab_link" class="doc_header"><code>colab_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L137" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>colab_link</code>(<strong><code>path</code></strong>)</p>
+</blockquote>
+<p>Get a link to the notebook at <code>path</code> on Colab</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">colab_link</span><span class="p">(</span><span class="s1">&#39;02_showdoc&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<p><a href="https://colab.research.google.com/github/fastai/nbdev/blob/master/nbs/02_showdoc.ipynb">Open <code>02_showdoc</code> in Colab</a></p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_nb_source_link" class="doc_header"><code>get_nb_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L144" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_nb_source_link</code>(<strong><code>func</code></strong>, <strong><code>local</code></strong>=<em><code>False</code></em>, <strong><code>is_name</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Return a link to the notebook where <code>func</code> is defined.</p>
 
@@ -469,8 +724,6 @@ nb_path: "nbs/02_showdoc.ipynb"
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">get_nb_source_link</span><span class="p">(</span><span class="n">DocsTestClass</span><span class="o">.</span><span class="n">test</span><span class="p">),</span> <span class="n">get_nb_source_link</span><span class="p">(</span><span class="n">DocsTestClass</span><span class="p">))</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">get_nb_source_link</span><span class="p">(</span><span class="s1">&#39;DocsTestClass&#39;</span><span class="p">),</span> <span class="n">get_nb_source_link</span><span class="p">(</span><span class="n">DocsTestClass</span><span class="p">))</span>
 
-<span class="n">NB_SOURCE_URL</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">git_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;github.com&#39;</span><span class="p">,</span> <span class="s1">&#39;nbviewer.jupyter.org/github&#39;</span><span class="p">)</span><span class="o">+</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">nbs_path</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">get_nb_source_link</span><span class="p">(</span><span class="n">check_re</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">NB_SOURCE_URL</span><span class="si">}</span><span class="s1">00_export.ipynb#Finding-patterns&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">get_nb_source_link</span><span class="p">(</span><span class="n">check_re</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;00_export.ipynb#Finding-patterns&#39;</span><span class="p">)</span>
 </pre></div>
 
@@ -483,7 +736,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>You can either pass an object or its name (by default <code>is_name</code> will look if <code>func</code> is a string or not to decide if it's <code>True</code> or <code>False</code>, but you can override if there is some inconsistent behavior). <code>local</code> will return a local link, otherwise it will point to a the notebook on github wrapped in <a href="https://nbviewer.jupyter.org/">nbviewer</a>.</p>
+<p>You can either pass an object or its name (by default <code>is_name</code> will look if <code>func</code> is a string or not to decide if it's <code>True</code> or <code>False</code>, but you can override if there is some inconsistent behavior). <code>local</code> will return a local link, otherwise it will point to a the notebook on Google Colab.</p>
 
 </div>
 </div>
@@ -506,7 +759,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="nb_source_link" class="doc_header"><code>nb_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L157" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>nb_source_link</code>(<strong><code>func</code></strong>, <strong><code>is_name</code></strong>=<em><code>None</code></em>, <strong><code>disp</code></strong>=<em><code>True</code></em>)</p>
+<h4 id="nb_source_link" class="doc_header"><code>nb_source_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L175" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>nb_source_link</code>(<strong><code>func</code></strong>, <strong><code>is_name</code></strong>=<em><code>None</code></em>, <strong><code>disp</code></strong>=<em><code>True</code></em>, <strong><code>local</code></strong>=<em><code>True</code></em>)</p>
 </blockquote>
 <p>Show a relative link to the notebook where <code>func</code> is defined</p>
 
@@ -536,9 +789,26 @@ nb_path: "nbs/02_showdoc.ipynb"
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_eq</span><span class="p">(</span><span class="n">nb_source_link</span><span class="p">(</span><span class="n">check_re</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;00_export.ipynb#Finding-patterns&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">nb_source_link</span><span class="p">(</span><span class="s1">&#39;check_re&#39;</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;00_export.ipynb#Finding-patterns&#39;</span><span class="p">)</span>
+<span class="n">nb_source_link</span><span class="p">(</span><span class="n">check_re</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 
     </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<p><a href="https://nbviewer.jupyter.org/github/fastai/nbdev/tree/master/nbs/00_export.ipynb#Finding-patterns">check_re (GitHub)</a></p>
+
+</div>
+
+</div>
+
 </div>
 </div>
 
@@ -576,7 +846,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="type_repr" class="doc_header"><code>type_repr</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L169" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>type_repr</code>(<strong><code>t</code></strong>)</p>
+<h4 id="type_repr" class="doc_header"><code>type_repr</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L188" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>type_repr</code>(<strong><code>t</code></strong>)</p>
 </blockquote>
 <p>Representation of type <code>t</code> (in a type annotation)</p>
 
@@ -605,7 +875,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">tst</span> <span class="o">=</span> <span class="n">type_repr</span><span class="p">(</span><span class="n">Optional</span><span class="p">[</span><span class="n">DocsTestClass</span><span class="p">])</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s1">&#39;`Optional`</span><span class="se">\\</span><span class="s1">[[`DocsTestClass`](/export#DocsTestClass)</span><span class="se">\\</span><span class="s1">]&#39;</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s1">&#39;`Optional`</span><span class="se">\\</span><span class="s1">[[`DocsTestClass`](/export.html#DocsTestClass)</span><span class="se">\\</span><span class="s1">]&#39;</span><span class="p">)</span>
 <span class="n">tst</span> <span class="o">=</span> <span class="n">type_repr</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">tst</span><span class="p">,</span> <span class="s1">&#39;`Union`</span><span class="se">\\</span><span class="s1">[`int`, `float`</span><span class="se">\\</span><span class="s1">]&#39;</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">type_repr</span><span class="p">(</span><span class="n">Param</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)),</span> <span class="s1">&#39;&quot;description&quot;&#39;</span><span class="p">)</span>
@@ -636,7 +906,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="format_param" class="doc_header"><code>format_param</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L183" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>format_param</code>(<strong><code>p</code></strong>)</p>
+<h4 id="format_param" class="doc_header"><code>format_param</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L202" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>format_param</code>(<strong><code>p</code></strong>)</p>
 </blockquote>
 <p>Formats function param to <code>param:Type=val</code> with font weights: param=bold, val=italic</p>
 
@@ -708,7 +978,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="show_doc" class="doc_header"><code>show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L227" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>show_doc</code>(<strong><code>elt</code></strong>, <strong><code>doc_string</code></strong>=<em><code>True</code></em>, <strong><code>name</code></strong>=<em><code>None</code></em>, <strong><code>title_level</code></strong>=<em><code>None</code></em>, <strong><code>disp</code></strong>=<em><code>True</code></em>, <strong><code>default_cls_level</code></strong>=<em><code>2</code></em>)</p>
+<h4 id="show_doc" class="doc_header"><code>show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L247" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>show_doc</code>(<strong><code>elt</code></strong>, <strong><code>doc_string</code></strong>=<em><code>True</code></em>, <strong><code>name</code></strong>=<em><code>None</code></em>, <strong><code>title_level</code></strong>=<em><code>None</code></em>, <strong><code>disp</code></strong>=<em><code>True</code></em>, <strong><code>default_cls_level</code></strong>=<em><code>2</code></em>)</p>
 </blockquote>
 <p>Show documentation for element <code>elt</code>. Supported types: class, function, and enum.</p>
 
@@ -788,7 +1058,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="parse_nbdev_show_doc" class="doc_header"><code>parse_nbdev_show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L260" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>parse_nbdev_show_doc</code>(<strong><code>line</code></strong>, <strong><code>namespace</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="parse_nbdev_show_doc" class="doc_header"><code>parse_nbdev_show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L280" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>parse_nbdev_show_doc</code>(<strong><code>line</code></strong>, <strong><code>namespace</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Return a tuple of names, wild_names and kwargs found in a show doc <code>line</code></p>
 
@@ -912,7 +1182,7 @@ nb_path: "nbs/02_showdoc.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="nbdev_show_doc" class="doc_header"><code>nbdev_show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L285" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>nbdev_show_doc</code>(<strong><code>line</code></strong>, <strong><code>local_ns</code></strong>)</p>
+<h4 id="nbdev_show_doc" class="doc_header"><code>nbdev_show_doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L305" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>nbdev_show_doc</code>(<strong><code>line</code></strong>, <strong><code>local_ns</code></strong>)</p>
 </blockquote>
 <p>Show documentation for one or more elements. Supported types: class, function, and enum.
 To show doc for multiple elements and specify title level:
@@ -971,8 +1241,9 @@ To show doc for a class and all of its "public" members:
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L472" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DocsTestClass</code>()</p>
+<h2 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L471" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DocsTestClass</code>()</p>
 </blockquote>
+<p>for tests only</p>
 
 </div>
 
@@ -1004,7 +1275,7 @@ errors defaults to 'strict'.</p>
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>With a dot, <code>%nbdev_show_doc</code> will look for an attribute of <a href="/export#DocsTestClass"><code>DocsTestClass</code></a> called "test"</p>
+<p>With a dot, <code>%nbdev_show_doc</code> will look for an attribute of <a href="/export.html#DocsTestClass"><code>DocsTestClass</code></a> called "test"</p>
 <div class="highlight"><pre><span></span><span class="o">%</span><span class="n">nbdev_show_doc</span> <span class="n">DocsTestClass</span> <span class="o">.</span> <span class="n">test</span>
 </pre></div>
 
@@ -1022,8 +1293,9 @@ errors defaults to 'strict'.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L472" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DocsTestClass</code>()</p>
+<h2 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L471" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DocsTestClass</code>()</p>
 </blockquote>
+<p>for tests only</p>
 
 </div>
 
@@ -1066,8 +1338,9 @@ errors defaults to 'strict'.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h3 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L472" class="source_link" style="float:right">[source]</a></h3><blockquote><p><code>DocsTestClass</code>()</p>
+<h3 id="DocsTestClass" class="doc_header"><code>class</code> <code>DocsTestClass</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/export.py#L471" class="source_link" style="float:right">[source]</a></h3><blockquote><p><code>DocsTestClass</code>()</p>
 </blockquote>
+<p>for tests only</p>
 
 </div>
 
@@ -1126,7 +1399,7 @@ errors defaults to 'strict'.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="md2html" class="doc_header"><code>md2html</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L306" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>md2html</code>(<strong><code>md</code></strong>)</p>
+<h4 id="md2html" class="doc_header"><code>md2html</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L326" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>md2html</code>(<strong><code>md</code></strong>)</p>
 </blockquote>
 <p>Convert markdown <code>md</code> to HTML code</p>
 
@@ -1158,7 +1431,7 @@ errors defaults to 'strict'.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_doc_link" class="doc_header"><code>get_doc_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L313" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_doc_link</code>(<strong><code>func</code></strong>)</p>
+<h4 id="get_doc_link" class="doc_header"><code>get_doc_link</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L333" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_doc_link</code>(<strong><code>func</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -1195,32 +1468,11 @@ errors defaults to 'strict'.</p>
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">fastai2.data.core</span> <span class="kn">import</span> <span class="n">TfmdDL</span>
-<span class="n">test_eq</span><span class="p">(</span><span class="n">get_doc_link</span><span class="p">(</span><span class="n">TfmdDL</span><span class="p">),</span> <span class="s1">&#39;https://dev.fast.ai/data.core#TfmdDL&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">nbdev.sync</span> <span class="kn">import</span> <span class="n">get_name</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">get_doc_link</span><span class="p">(</span><span class="n">get_name</span><span class="p">),</span> <span class="s1">&#39;https://nbdev.fast.ai/sync#get_name&#39;</span><span class="p">)</span>
 </pre></div>
 
     </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-<div class="output_subarea output_text output_error">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-green-fg">&lt;ipython-input-23-ad78da485baf&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">      1</span> get_ipython<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>run_line_magic<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;nbdev_fastai2_test&#39;</span><span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">&#39;&#39;</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">----&gt; 2</span><span class="ansi-red-fg"> </span><span class="ansi-green-fg">from</span> fastai2<span class="ansi-blue-fg">.</span>data<span class="ansi-blue-fg">.</span>core <span class="ansi-green-fg">import</span> TfmdDL
-<span class="ansi-green-intense-fg ansi-bold">      3</span> test_eq<span class="ansi-blue-fg">(</span>get_doc_link<span class="ansi-blue-fg">(</span>TfmdDL<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">&#39;https://dev.fast.ai/data.core#TfmdDL&#39;</span><span class="ansi-blue-fg">)</span>
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;fastai2&#39;</pre>
-</div>
-</div>
-
 </div>
 </div>
 
@@ -1245,9 +1497,9 @@ errors defaults to 'strict'.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="doc" class="doc_header"><code>doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L325" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>doc</code>(<strong><code>elt</code></strong>)</p>
+<h4 id="doc" class="doc_header"><code>doc</code><a href="https://github.com/fastai/nbdev/tree/master/nbdev/showdoc.py#L345" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>doc</code>(<strong><code>elt</code></strong>)</p>
 </blockquote>
-<p>Show <a href="/showdoc#show_doc"><code>show_doc</code></a> info in preview window when used in a notebook</p>
+<p>Show <a href="/showdoc.html#show_doc"><code>show_doc</code></a> info in preview window when used in a notebook</p>
 
 </div>
 

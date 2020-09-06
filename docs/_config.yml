@@ -21,9 +21,8 @@ exclude:
  
 exclude: [vendor]
 
-# This specifies what badges are turned on by default for notebook docs.
 default_badges:
-  colab: true
+  colab: false
 
 highlighter: rouge
 markdown: kramdown
@@ -60,7 +59,5 @@ defaults:
       tooltip: true
 
 sidebars: [home_sidebar]
-permalink: pretty
 baseurl: /
 #theme: jekyll-theme-cayman
-

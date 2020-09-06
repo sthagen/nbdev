@@ -2,7 +2,7 @@
 
 __all__ = ['HTMLParseAttrs', 'remove_widget_state', 'upd_metadata', 'hide_cells', 'clean_exports', 'treat_backticks',
            'add_jekyll_notes', 'copy_images', 'adapt_img_path', 'escape_latex', 'collapse_cells', 'remove_hidden',
-           'find_default_level', 'add_show_docs', 'remove_fake_headers', 'remove_empty', 'get_metadata',
+           'find_default_level', 'nb_code_cell', 'add_show_docs', 'remove_fake_headers', 'remove_empty', 'get_metadata',
            'ExecuteShowDocPreprocessor', 'execute_nb', 'cite2link', 'write_tmpl', 'write_tmpls', 'nbdev_exporter',
            'process_cells', 'process_cell', 'convert_nb', 'notebook2html', 'convert_md', 'nb_detach_cells',
            'create_default_sidebar', 'make_sidebar']
@@ -285,12 +285,13 @@ _re_export_magic = _mk_flag_re(True, "export(|_and_show)", (0,1),
     "Matches any line with %nbdev_export or %nbdev_export_and_show with or without module name")
 
 # Cell
+def nb_code_cell(source):
+    "A code cell (as a dict) containing `source`"
+    return {'cell_type': 'code', 'execution_count': None, 'metadata': {}, 'outputs': [], 'source': source}
+
+# Cell
 def _show_doc_cell(name, cls_lvl=None):
-    return {'cell_type': 'code',
-            'execution_count': None,
-            'metadata': {},
-            'outputs': [],
-            'source': f"show_doc({name}{'' if cls_lvl is None else f', default_cls_level={cls_lvl}'})"}
+    return nb_code_cell(f"show_doc({name}{'' if cls_lvl is None else f', default_cls_level={cls_lvl}'})")
 
 def add_show_docs(cells, cls_lvl=None):
     "Add `show_doc` for each exported function or class"
@@ -411,20 +412,29 @@ def _gather_export_mods(cells):
 # match any cell containing a zero indented import from the current lib
 _re_lib_import = ReLibName(r"^from LIB_NAME\.", re.MULTILINE)
 # match any cell containing a zero indented import
-_re_import = re.compile(r"^from[ \t]|^import[ \t]", re.MULTILINE)
+_re_import = re.compile(r"^from[ \t]+\S+[ \t]+import|^import[ \t]", re.MULTILINE)
 # match any cell containing a zero indented call to notebook2script
 _re_notebook2script = re.compile(r"^notebook2script\(", re.MULTILINE)
+
+# Cell
+def _non_comment_code(s):
+    if re.match(r'\s*#', s): return False
+    if _re_import.findall(s) or _re_lib_import.re.findall(s): return False
+    return re.match(r'\s*\w', s)
 
 # Cell
 class ExecuteShowDocPreprocessor(ExecutePreprocessor):
     "An `ExecutePreprocessor` that only executes `show_doc` and `import` cells"
     def preprocess_cell(self, cell, resources, index):
         if not check_re(cell, _re_notebook2script):
-            if check_re_multi(cell, [_re_show_doc, _re_show_doc_magic, _re_lib_import.re]):
+            if check_re_multi(cell, [_re_show_doc, _re_show_doc_magic]):
                 return super().preprocess_cell(cell, resources, index)
-            elif check_re(cell, _re_import):
-                try: return super().preprocess_cell(cell, resources, index)
-                except: pass
+            elif check_re_multi(cell, [_re_import, _re_lib_import.re]):
+#                 r = list(filter(_non_comment_code, cell['source'].split('\n')))
+#                 if r: print("You have import statements mixed with other code", r)
+                return super().preprocess_cell(cell, resources, index)
+#                 try: return super().preprocess_cell(cell, resources, index)
+#                 except: pass
         return cell, resources
 
 # Cell
@@ -492,8 +502,9 @@ def write_tmpl(tmpl, nms, cfg, dest):
 def write_tmpls():
     "Write out _config.yml and _data/topnav.yml using templates"
     cfg = Config()
-    write_tmpl(config_tmpl, 'user lib_name title copyright description', cfg, cfg.doc_path/'_config.yml')
-    write_tmpl(topnav_tmpl, 'host git_url', cfg, cfg.doc_path/'_data'/'topnav.yml')
+    path = Path(cfg.get('doc_src_path', cfg.doc_path))
+    write_tmpl(config_tmpl, 'user lib_name title copyright description', cfg, path/'_config.yml')
+    write_tmpl(topnav_tmpl, 'host git_url', cfg, path/'_data'/'topnav.yml')
     write_tmpl(makefile_tmpl, 'nbs_path lib_name', cfg, cfg.config_file.parent/'Makefile')
 
 # Cell
@@ -512,12 +523,9 @@ process_cells = [remove_fake_headers, remove_hidden, remove_empty]
 process_cell  = [hide_cells, collapse_cells, remove_widget_state, add_jekyll_notes, escape_latex, cite2link]
 
 # Cell
-_re_digits = re.compile(r'^\d+\S*?_')
-
-# Cell
 def _nb2htmlfname(nb_path, dest=None):
     if dest is None: dest = Config().doc_path
-    return Path(dest)/_re_digits.sub('', nb_path.with_suffix('.html').name)
+    return Path(dest)/re_digits_first.sub('', nb_path.with_suffix('.html').name)
 
 # Cell
 def convert_nb(fname, cls=HTMLExporter, template_file=None, exporter=None, dest=None):
@@ -578,7 +586,7 @@ def notebook2html(fname=None, force_all=False, n_workers=None, cls=HTMLExporter,
                           template_file=template_file, exporter=exporter, dest=dest, pause=pause)
         if not all(passed):
             msg = "Conversion failed on the following:\n"
-            raise Exception(msg + '\n'.join([f.name for p,f in zip(passed,files) if not p]))
+            print(msg + '\n'.join([f.name for p,f in zip(passed,files) if not p]))
 
 # Cell
 def convert_md(fname, dest_path, img_path='docs/images/', jekyll=True):
@@ -685,22 +693,29 @@ def _get_title(fname):
     return fname.stem if src is None else src.groups()[0]
 
 # Cell
-def create_default_sidebar():
+def _create_default_sidebar():
     "Create the default sidebar for the docs website"
     dic = {"Overview": "/"}
     files = [f for f in Config().nbs_path.glob('*.ipynb') if not f.name.startswith('_')]
     fnames = [_nb2htmlfname(f) for f in sorted(files)]
     titles = [_get_title(f) for f in fnames if 'index' not in f.stem!='index']
     if len(titles) > len(set(titles)): print(f"Warning: Some of your Notebooks use the same title ({titles}).")
-    dic.update({_get_title(f):f'/{f.stem}' for f in fnames if f.stem!='index'})
-    dic = {Config().lib_name: dic}
+    dic.update({_get_title(f):f'{f.name}' for f in fnames if f.stem!='index'})
+    return dic
+
+# Cell
+def create_default_sidebar():
+    "Create the default sidebar for the docs website"
+    dic = {Config().lib_name: _create_default_sidebar()}
     json.dump(dic, open(Config().doc_path/'sidebar.json', 'w'), indent=2)
 
 # Cell
 def make_sidebar():
     "Making sidebar for the doc website form the content of `doc_folder/sidebar.json`"
-    if not (Config().doc_path/'sidebar.json').exists() or Config().custom_sidebar == 'False': create_default_sidebar()
-    sidebar_d = json.load(open(Config().doc_path/'sidebar.json', 'r'))
+    cfg = Config()
+    if not (cfg.doc_path/'sidebar.json').exists() or cfg.get('custom_sidebar', 'False') == 'False':
+        create_default_sidebar()
+    sidebar_d = json.load(open(cfg.doc_path/'sidebar.json', 'r'))
     res = _side_dict('Sidebar', sidebar_d)
     res = {'entries': [res]}
     res_s = yaml.dump(res, default_flow_style=False)
@@ -711,4 +726,4 @@ def make_sidebar():
 #################################################
 # Instead edit {'../../sidebar.json'}
 """+res_s
-    open(Config().doc_path/'_data/sidebars/home_sidebar.yml', 'w').write(res_s)
+    open(cfg.doc_path/'_data/sidebars/home_sidebar.yml', 'w').write(res_s)

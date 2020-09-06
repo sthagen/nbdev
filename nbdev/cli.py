@@ -213,8 +213,8 @@ def make_readme():
 # Cell
 @call_parse
 def nbdev_build_docs(fname:Param("A notebook name or glob to convert", str)=None,
-                     force_all:Param("Rebuild even notebooks that haven't changed", bool)=False,
-                     mk_readme:Param("Also convert the index notebook to README", bool)=True,
+                     force_all:Param("Rebuild even notebooks that haven't changed", bool_arg)=False,
+                     mk_readme:Param("Also convert the index notebook to README", bool_arg)=True,
                      n_workers:Param("Number of workers to use", int)=None,
                      pause:Param("Pause time (in secs) between notebooks to avoid race conditions", float)=0.2):
     "Build the documentation by converting notebooks mathing `fname` to html"
@@ -307,12 +307,13 @@ def nbdev_conda_package(path:Param("Path where package will be created", str)='c
     out = f"Done. Next steps:\n```\`cd {path}\n"""
     out_upl = f"anaconda upload $CONDA_PREFIX/conda-bld/noarch/{name}-{cfg.get('version')}-py_0.tar.bz2"
     if not do_build:
-        print(f"{out}conda build {name}\n{out_upl}\n```")
+        print(f"{out}conda build .\n{out_upl}\n```")
         return
 
     os.chdir(path)
-    try: res = check_output(f"conda build {build_args} {name}".split()).decode()
+    try: res = check_output(f"conda build {build_args} .".split()).decode()
     except subprocess.CalledProcessError as e: print(f"{e.output}\n\nBuild failed.")
+    if 'to anaconda.org' in res: return
     if 'anaconda upload' not in res:
         print(f"{res}\n\Build failed.")
         return
