@@ -17,11 +17,14 @@ docs: $(SRC)
 	touch docs
 
 test:
-	nbdev_test_nbs
+	nbdev_test_nbs --flags ''
 
 release: pypi
-	nbdev_conda_package --upload_user fastai
+	fastrelease_conda_package --upload_user fastai
 	nbdev_bump_version
+
+conda_release:
+	fastrelease_conda_package --upload_user fastai
 
 pypi: dist
 	twine upload --repository pypi dist/*

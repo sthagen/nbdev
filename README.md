@@ -7,7 +7,7 @@
 
 `nbdev` is a library that allows you to fully develop a library in [Jupyter Notebooks](https://jupyter.org/), putting all your code, tests and documentation in one place. That is: you now have a true [literate programming](https://en.wikipedia.org/wiki/Literate_programming) environment, as envisioned by Donald Knuth back in 1983!
 
-Using the interactive environment, you can easily debug and refactor your code. Add `%nbdev_export` flags to the cells that define the functions you want to include in your python modules. Here, for instance, is how `combined_cos` is defined and documented in the `fastai` library:
+Using the interactive environment, you can easily debug and refactor your code. Add `#export` to the cells that define the functions you want to include in your python modules. Here, for instance, is how `combined_cos` is defined and documented in the `fastai` library:
 
 <img alt="Exporting from nbdev" width="700" caption="An example of a function defined in one cell (marked with the export flag) and explained, along with a visual example, in the following cells" src="nbs/images/export_example.png">
 
@@ -31,6 +31,7 @@ See below for *Installing* and *Getting Started*. In the other pages of the docu
 - how [sync](http://nbdev.fast.ai/sync) can allow you to export back from the python modules to the jupyter notebook
 - how to put [tests](http://nbdev.fast.ai/test) in your notebooks, which can be run in parallel, and exported to CI from your notebooks
 - get more info about the [additional functionality](http://nbdev.fast.ai/#Additional-functionality)
+- [release notes](https://github.com/fastai/nbdev/blob/master/CHANGELOG.md)
 
 ## Installing
 
@@ -67,8 +68,13 @@ Now, run `jupyter notebook`, and click `00_core.ipynb`. This is where you'll cre
 
 In the last cell of your notebook, you can then run:
 
+```python
+from nbdev.export import *
+notebook2script()
 ```
-from nbdev import *
+
+```
+from nbdev.export import *
 notebook2script()
 ```
 
@@ -78,11 +84,13 @@ notebook2script()
     Converted 03_export2html.ipynb.
     Converted 04_test.ipynb.
     Converted 05_merge.ipynb.
+    Converted 05a_conda.ipynb.
     Converted 06_cli.ipynb.
     Converted 07_clean.ipynb.
-    Converted 08_flag_tests.ipynb.
     Converted 99_search.ipynb.
     Converted index.ipynb.
+    Converted magic_flags.ipynb.
+    Converted nbdev_callbacks.ipynb.
     Converted tutorial.ipynb.
 
 
@@ -162,12 +170,12 @@ Which is rendered as:
 Using `$`, e.g.:
 
 ```
-This version is diplayed inline: $\sum_{i=1}^{k+1}i$ . You can include text before and after.
+This version is displayed inline: $\sum_{i=1}^{k+1}i$ . You can include text before and after.
 ```
 
 Which is rendered as:
 
-> This version is diplayed inline:$\sum_{i=1}^{k+1}i$ . You can include text before and after.
+> This version is displayed inline:$\sum_{i=1}^{k+1}i$ . You can include text before and after.
 
 ### Custom search engine
 
@@ -193,7 +201,8 @@ Furthermore, if you want to hide a badge on an individual document but still sho
 # Command line functions
 > Console commands added by the nbdev library
 
-- hide_colab_badge:true```
+- hide_colab_badge:true
+```
 
 Note how in the above example, the title `Command line functions` is formatted as a markdown heading and the summary `Console commands added by the nbdev library` is formatted as a markdown block quote. The additional option `hide_colab_badge` is a list item.  It is important that this list item is separated from the summary by 2 newlines as shown above, in the same notebook markdown cell.
 
@@ -210,3 +219,4 @@ in the cloned repository folder.
 ## Copyright
 
 Copyright 2019 onwards, fast.ai, Inc. Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project's files except in compliance with the License. A copy of the License is provided in the LICENSE file in this repository.
+

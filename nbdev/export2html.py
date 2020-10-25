@@ -2,9 +2,10 @@
 
 __all__ = ['HTMLParseAttrs', 'remove_widget_state', 'upd_metadata', 'hide_cells', 'clean_exports', 'treat_backticks',
            'add_jekyll_notes', 'copy_images', 'adapt_img_path', 'escape_latex', 'collapse_cells', 'remove_hidden',
-           'find_default_level', 'nb_code_cell', 'add_show_docs', 'remove_fake_headers', 'remove_empty', 'get_metadata',
-           'ExecuteShowDocPreprocessor', 'execute_nb', 'cite2link', 'write_tmpl', 'write_tmpls', 'nbdev_exporter',
-           'process_cells', 'process_cell', 'convert_nb', 'notebook2html', 'convert_md', 'nb_detach_cells',
+           'find_default_level', 'nb_code_cell', 'add_show_docs', 'add_show_docs', 'remove_fake_headers',
+           'remove_empty', 'get_metadata', 'ExecuteShowDocPreprocessor', 'execute_nb', 'cite2link', 'write_tmpl',
+           'write_tmpls', 'nbdev_build_lib', 'nbdev_exporter', 'process_cells', 'process_cell', 'convert_nb',
+           'notebook2html', 'convert_md', 'nbdev_detach', 'make_readme', 'nbdev_build_docs', 'nbdev_nb2md',
            'create_default_sidebar', 'make_sidebar']
 
 # Cell
@@ -14,11 +15,14 @@ from .export import *
 from .export import _mk_flag_re
 from .showdoc import *
 from .template import *
+from fastcore.foundation import *
+from fastcore.script import *
 
 from html.parser import HTMLParser
 from nbconvert.preprocessors import ExecutePreprocessor, Preprocessor
 from nbconvert import HTMLExporter,MarkdownExporter
 import traitlets
+import nbformat
 
 # Cell
 class HTMLParseAttrs(HTMLParser):
@@ -56,24 +60,11 @@ _re_show_doc = re.compile(r"""
 [,\)\s]      # A comma, a closing ) or a whitespace
 """, re.MULTILINE | re.VERBOSE)
 
-_re_show_doc_magic = _mk_flag_re(True, 'show_doc', -1,
-    "# Catches a cell with %nbdev_show_doc \*\* and get that \*\* in group 1")
-
 _re_hide_input = [
-    _mk_flag_re(False, 'export', (0,1),
-        "Matches any cell that has `#export in it"),
-    _mk_flag_re(False, '(hide_input|hide-input)', 0,
-        "Matches any cell that has `#hide_input` or `#hide-input` in it"),
-    _mk_flag_re(True, 'export', (0,1),
-        "Matches any cell that has `%nbdev_export` in it"),
-    _mk_flag_re(True, 'hide_input', 0,
-        "Matches any cell that has `%nbdev_hide_input` in it")]
+    _mk_flag_re('export', (0,1), "Cell that has `#export"),
+    _mk_flag_re('(hide_input|hide-input)', 0, "Cell that has `#hide_input` or `#hide-input`")]
 
-_re_hide_output = [
-    _mk_flag_re(False, '(hide_output|hide-output)', 0,
-        "Matches any cell that has `#hide_output` or `#hide-output` in it"),
-    _mk_flag_re(True, 'hide_output', 0,
-        "Matches any cell that has `%nbdev_hide_output` in it")]
+_re_hide_output = _mk_flag_re('(hide_output|hide-output)', 0, "Cell that has `#hide_output` or `#hide-output`")
 
 # Cell
 def upd_metadata(cell, key, value=True):
@@ -83,15 +74,14 @@ def upd_metadata(cell, key, value=True):
 # Cell
 def hide_cells(cell):
     "Hide inputs of `cell` that need to be hidden"
-    if check_re_multi(cell, [_re_show_doc, _re_show_doc_magic, *_re_hide_input]): upd_metadata(cell, 'hide_input')
-    elif check_re_multi(cell, _re_hide_output): upd_metadata(cell, 'hide_output')
+    if check_re_multi(cell, [_re_show_doc, *_re_hide_input]): upd_metadata(cell, 'hide_input')
+    elif check_re(cell, _re_hide_output): upd_metadata(cell, 'hide_output')
     return cell
 
 # Cell
 def clean_exports(cell):
     "Remove all flags from code `cell`s"
-    if cell['cell_type'] == 'code':
-        cell['source'] = split_flags_and_code(cell, str)[1]
+    if cell['cell_type'] == 'code': cell['source'] = split_flags_and_code(cell, str)[1]
     return cell
 
 # Cell
@@ -219,70 +209,37 @@ def escape_latex(cell):
     return cell
 
 # Cell
-_re_cell_to_collapse_closed = [
-    _mk_flag_re(False, '(collapse|collapse_hide|collapse-hide)', 0,
-        "Matches any cell with #collapse or #collapse_hide"),
-    _mk_flag_re(True, 'collapse_input', 0,
-        "Matches any cell with %nbdev_collapse_input")]
-
-_re_cell_to_collapse_open = [
-    _mk_flag_re(False, '(collapse_show|collapse-show)', 0,
-        "Matches any cell with #collapse_show"),
-    _mk_flag_re(True, r'collapse_input[ \t]+open', 0,
-        "Matches any cell with %nbdev_collapse_input open")]
-
-_re_cell_to_collapse_output = [
-    _mk_flag_re(False, '(collapse_output|collapse-output)', 0,
-        "Matches any cell with #collapse_output"),
-    _mk_flag_re(True, 'collapse_output', 0,
-        "Matches any cell with %nbdev_collapse_output")]
+_re_cell_to_collapse_closed = _mk_flag_re('(collapse|collapse_hide|collapse-hide)', 0, "Cell with #collapse or #collapse_hide")
+_re_cell_to_collapse_open = _mk_flag_re('(collapse_show|collapse-show)', 0, "Cell with #collapse_show")
+_re_cell_to_collapse_output = _mk_flag_re('(collapse_output|collapse-output)', 0, "Cell with #collapse_output")
 
 # Cell
 def collapse_cells(cell):
     "Add a collapse button to inputs or outputs of `cell` in either the open or closed position"
-    if check_re_multi(cell, _re_cell_to_collapse_closed): upd_metadata(cell,'collapse_hide')
-    elif check_re_multi(cell, _re_cell_to_collapse_open): upd_metadata(cell,'collapse_show')
-    elif check_re_multi(cell, _re_cell_to_collapse_output): upd_metadata(cell,'collapse_output')
+    if check_re(cell, _re_cell_to_collapse_closed): upd_metadata(cell,'collapse_hide')
+    elif check_re(cell, _re_cell_to_collapse_open): upd_metadata(cell,'collapse_show')
+    elif check_re(cell, _re_cell_to_collapse_output): upd_metadata(cell,'collapse_output')
     return cell
 
 # Cell
-_re_hide = [
-    _mk_flag_re(False, 'hide', 0, 'Matches any cell with #hide'),
-    _mk_flag_re(True, 'hide', 0, 'Matches any cell with %nbdev_hide')]
-_re_all_flag = ReTstFlags(True)
-_re_cell_to_remove = [
-    _mk_flag_re(False, '(default_exp|exporti)', (0,1),
-        'Matches any cell with #default_exp or #exporti'),
-    _mk_flag_re(True, '(default_export|export_internal)', (0,1),
-        'Matches any cell with %nbdev_default_export or %nbdev_export_internal')]
-_re_default_cls_lvl = [
-    _mk_flag_re(False, 'default_cls_lvl', 1, "Matches any cell with #default_cls_lvl"),
-    _mk_flag_re(True, 'default_class_level', 1, "Matches any cell with %nbdev_default_class_level"),
-]
+_re_hide = _mk_flag_re('hide', 0, 'Cell with #hide')
+_re_cell_to_remove = _mk_flag_re('(default_exp|exporti)', (0,1), 'Cell with #default_exp or #exporti')
+_re_default_cls_lvl = _mk_flag_re('default_cls_lvl', 1, "Cell with #default_cls_lvl")
 
 # Cell
 def remove_hidden(cells):
     "Remove in `cells` the ones with a flag `#hide`, `#default_exp`, `#default_cls_lvl` or `#exporti`"
-    def _hidden(cell):
-        "Check if `cell` should be hidden"
-        if check_re_multi(cell, _re_hide, code_only=False): return True
-        if check_re_multi(cell, [_re_all_flag, *_re_cell_to_remove, *_re_default_cls_lvl]): return True
-        return False
-    return [c for c in cells if not _hidden(c)]
+    _hidden = lambda c: check_re(c, _re_hide, code_only=False) or check_re(c, _re_cell_to_remove)
+    return L(cells).filter(_hidden, negate=True)
 
 # Cell
 def find_default_level(cells):
     "Find in `cells` the default class level."
-    for cell in cells:
-        tst = check_re_multi(cell, _re_default_cls_lvl)
-        if tst: return int(tst.groups()[0])
-    return 2
+    res = L(cells).map_first(check_re_multi, pats=_re_default_cls_lvl)
+    return int(res.groups()[0]) if res else 2
 
 # Cell
-_re_export = _mk_flag_re(False, "exports?", (0,1),
-    "Matches any line with #export or #exports with or without module name")
-_re_export_magic = _mk_flag_re(True, "export(|_and_show)", (0,1),
-    "Matches any line with %nbdev_export or %nbdev_export_and_show with or without module name")
+_re_export = _mk_flag_re("exports?", (0,1), "Line with #export or #exports with or without module name")
 
 # Cell
 def nb_code_cell(source):
@@ -295,27 +252,34 @@ def _show_doc_cell(name, cls_lvl=None):
 
 def add_show_docs(cells, cls_lvl=None):
     "Add `show_doc` for each exported function or class"
-    res, documented, documented_wild = [], [], []
+    documented = []
     for cell in cells:
-        m = check_re_multi(cell, [_re_show_doc, _re_show_doc_magic])
+        m = check_re(cell, _re_show_doc)
         if not m: continue
-        if m.re is _re_show_doc:
-            documented.append(m.group(1))
-        else:
-            names, wild_names, kwargs = parse_nbdev_show_doc(m.group(1))
-            documented.extend(names)
-            documented_wild.extend(wild_names)
+        documented.append(m.group(1))
 
-    def _documented(name):
-        if name in documented: return True
-        # assume that docs will have been shown for all members of everything in documented_wild
-        if name.rfind('.') != -1 and name[0:name.rfind('.')] in documented_wild: return True
+    def _documented(name): return name in documented
 
     for cell in cells:
         res.append(cell)
-        if check_re_multi(cell, [_re_export, _re_export_magic]):
+        if check_re(cell, _re_export):
             for n in export_names(cell['source'], func_only=True):
-                if not _documented(n): res.append(_show_doc_cell(n, cls_lvl=cls_lvl))
+                if not _documented(n): res.insert(len(res)-1, _show_doc_cell(n, cls_lvl=cls_lvl))
+    return res
+
+# Cell
+def _show_doc_cell(name, cls_lvl=None):
+    return nb_code_cell(f"show_doc({name}{'' if cls_lvl is None else f', default_cls_level={cls_lvl}'})")
+
+def add_show_docs(cells, cls_lvl=None):
+    "Add `show_doc` for each exported function or class"
+    documented = L(cells).map_filter(check_re, pat=_re_show_doc).map(Self.group(1))
+    res = []
+    for cell in cells:
+        res.append(cell)
+        if check_re(cell, _re_export):
+            for n in export_names(cell['source'], func_only=True):
+                if not n in documented: res.insert(len(res)-1, _show_doc_cell(n, cls_lvl=cls_lvl))
     return res
 
 # Cell
@@ -396,15 +360,13 @@ def get_metadata(cells):
             'title'   : 'Title'}
 
 # Cell
-_re_mod_export = _mk_flag_re(False, "export[s]?", 1,
+_re_mod_export = _mk_flag_re("export[s]?", 1,
     "Matches any line with #export or #exports with a module name and catches it in group 1")
-_re_mod_export_magic = _mk_flag_re(True, "export(?:|_and_show)", 1,
-    "Matches any line with %nbdev_export or %nbdev_export_and_show catching module name in group 1")
 
 def _gather_export_mods(cells):
     res = []
     for cell in cells:
-        tst = check_re_multi(cell, [_re_mod_export, _re_mod_export_magic])
+        tst = check_re(cell, _re_mod_export)
         if tst is not None: res.append(tst.groups()[0])
     return res
 
@@ -427,12 +389,13 @@ class ExecuteShowDocPreprocessor(ExecutePreprocessor):
     "An `ExecutePreprocessor` that only executes `show_doc` and `import` cells"
     def preprocess_cell(self, cell, resources, index):
         if not check_re(cell, _re_notebook2script):
-            if check_re_multi(cell, [_re_show_doc, _re_show_doc_magic]):
+            if check_re(cell, _re_show_doc):
                 return super().preprocess_cell(cell, resources, index)
             elif check_re_multi(cell, [_re_import, _re_lib_import.re]):
-#                 r = list(filter(_non_comment_code, cell['source'].split('\n')))
-#                 if r: print("You have import statements mixed with other code", r)
-                return super().preprocess_cell(cell, resources, index)
+                if check_re_multi(cell, [_re_export, 'show_doc', '^\s*#\s*import']):
+#                     r = list(filter(_non_comment_code, cell['source'].split('\n')))
+#                     if r: print("You have import statements mixed with other code", r)
+                    return super().preprocess_cell(cell, resources, index)
 #                 try: return super().preprocess_cell(cell, resources, index)
 #                 except: pass
         return cell, resources
@@ -502,10 +465,17 @@ def write_tmpl(tmpl, nms, cfg, dest):
 def write_tmpls():
     "Write out _config.yml and _data/topnav.yml using templates"
     cfg = Config()
-    path = Path(cfg.get('doc_src_path', cfg.doc_path))
+    path = Path(cfg.get('doc_src_path', cfg.path("doc_path")))
     write_tmpl(config_tmpl, 'user lib_name title copyright description', cfg, path/'_config.yml')
     write_tmpl(topnav_tmpl, 'host git_url', cfg, path/'_data'/'topnav.yml')
     write_tmpl(makefile_tmpl, 'nbs_path lib_name', cfg, cfg.config_file.parent/'Makefile')
+
+# Cell
+@call_parse
+def nbdev_build_lib(fname:Param("A notebook name or glob to convert", str)=None):
+    "Export notebooks matching `fname` to python modules"
+    write_tmpls()
+    notebook2script(fname=fname)
 
 # Cell
 def nbdev_exporter(cls=HTMLExporter, template_file=None):
@@ -524,37 +494,33 @@ process_cell  = [hide_cells, collapse_cells, remove_widget_state, add_jekyll_not
 
 # Cell
 def _nb2htmlfname(nb_path, dest=None):
-    if dest is None: dest = Config().doc_path
+    if dest is None: dest = Config().path("doc_path")
     return Path(dest)/re_digits_first.sub('', nb_path.with_suffix('.html').name)
 
 # Cell
-def convert_nb(fname, cls=HTMLExporter, template_file=None, exporter=None, dest=None):
+def convert_nb(fname, cls=HTMLExporter, template_file=None, exporter=None, dest=None, execute=True):
     "Convert a notebook `fname` to html file in `dest_path`."
     fname = Path(fname).absolute()
-    os.chdir(fname.parent)
     nb = read_nb(fname)
-    call_cb('begin_doc_nb', nb, fname, 'html')
     meta_jekyll = get_metadata(nb['cells'])
-    meta_jekyll['nb_path'] = str(fname.relative_to(Config().lib_path.parent))
+    meta_jekyll['nb_path'] = str(fname.relative_to(Config().path("lib_path").parent))
     cls_lvl = find_default_level(nb['cells'])
     mod = find_default_export(nb['cells'])
     nb['cells'] = compose(*process_cells,partial(add_show_docs, cls_lvl=cls_lvl))(nb['cells'])
-    _func = compose(partial(copy_images, fname=fname, dest=Config().doc_path), *process_cell, treat_backticks)
+    _func = compose(partial(copy_images, fname=fname, dest=Config().path("doc_path")), *process_cell, treat_backticks)
     nb['cells'] = [_func(c) for c in nb['cells']]
-    nb = execute_nb(nb, mod=mod)
+    if execute: nb = execute_nb(nb, mod=mod)
     nb['cells'] = [clean_exports(c) for c in nb['cells']]
-    call_cb('after_doc_nb_preprocess', nb, fname, 'html')
     if exporter is None: exporter = nbdev_exporter(cls=cls, template_file=template_file)
     with open(_nb2htmlfname(fname, dest=dest),'w') as f:
         f.write(exporter.from_notebook_node(nb, resources=meta_jekyll)[0])
-    call_cb('after_doc_nb', fname, 'html')
 
 # Cell
-def _notebook2html(fname, cls=HTMLExporter, template_file=None, exporter=None, dest=None):
+def _notebook2html(fname, cls=HTMLExporter, template_file=None, exporter=None, dest=None, execute=True):
     time.sleep(random.random())
     print(f"converting: {fname}")
     try:
-        convert_nb(fname, cls=cls, template_file=template_file, exporter=exporter, dest=dest)
+        convert_nb(fname, cls=cls, template_file=template_file, exporter=exporter, dest=dest, execute=execute)
         return True
     except Exception as e:
         print(e)
@@ -562,11 +528,11 @@ def _notebook2html(fname, cls=HTMLExporter, template_file=None, exporter=None, d
 
 # Cell
 def notebook2html(fname=None, force_all=False, n_workers=None, cls=HTMLExporter, template_file=None,
-                  exporter=None, dest=None, pause=0):
+                  exporter=None, dest=None, pause=0, execute=True):
     "Convert all notebooks matching `fname` to html files"
     if fname is None:
-        files = [f for f in Config().nbs_path.glob('**/*.ipynb')
-                 if not f.name.startswith('_') and not '/.' in str(f)]
+        files = [f for f in Config().path("nbs_path").glob('**/*.ipynb')
+                 if not f.name.startswith('_') and not '/.' in f.as_posix()]
     else:
         p = Path(fname)
         files = list(p.parent.glob(p.name))
@@ -583,7 +549,7 @@ def notebook2html(fname=None, force_all=False, n_workers=None, cls=HTMLExporter,
     if len(files)==0: print("No notebooks were modified")
     else:
         passed = parallel(_notebook2html, files, n_workers=n_workers, cls=cls,
-                          template_file=template_file, exporter=exporter, dest=dest, pause=pause)
+                          template_file=template_file, exporter=exporter, dest=dest, pause=pause, execute=execute)
         if not all(passed):
             msg = "Conversion failed on the following:\n"
             print(msg + '\n'.join([f.name for p,f in zip(passed,files) if not p]))
@@ -595,14 +561,12 @@ def convert_md(fname, dest_path, img_path='docs/images/', jekyll=True):
     if not img_path: img_path = fname.stem + '_files/'
     Path(img_path).mkdir(exist_ok=True, parents=True)
     nb = read_nb(fname)
-    call_cb('begin_doc_nb', nb, fname, 'md')
     meta_jekyll = get_metadata(nb['cells'])
-    try: meta_jekyll['nb_path'] = str(fname.relative_to(Config().lib_path.parent))
+    try: meta_jekyll['nb_path'] = str(fname.relative_to(Config().path("lib_path").parent))
     except: meta_jekyll['nb_path'] = str(fname)
     nb['cells'] = compose(*process_cells)(nb['cells'])
     nb['cells'] = [compose(partial(adapt_img_path, fname=fname, dest=dest_path, jekyll=jekyll), *process_cell)(c)
                    for c in nb['cells']]
-    call_cb('after_doc_nb_preprocess', nb, fname, 'md')
     fname = Path(fname).absolute()
     dest_name = fname.with_suffix('.md').name
     exp = nbdev_exporter(cls=MarkdownExporter, template_file='jekyll-md.tpl' if jekyll else 'md.tpl')
@@ -614,7 +578,6 @@ def convert_md(fname, dest_path, img_path='docs/images/', jekyll=True):
     if hasattr(export[1]['outputs'], 'items'):
         for n,o in export[1]['outputs'].items():
             with open(Path(dest_path)/img_path/n, 'wb') as f: f.write(o)
-    call_cb('after_doc_nb', fname, 'md')
 
 # Cell
 _re_att_ref = re.compile(r' *!\[(.*)\]\(attachment:image.png(?: "(.*)")?\)')
@@ -650,7 +613,11 @@ def _nb_detach_cell(cell, dest, use_img):
     else: return [o.replace('attachment:image.png', str(p)) for o in src]
 
 # Cell
-def nb_detach_cells(path_nb, dest=None, replace=True, use_img=False):
+@call_parse
+def nbdev_detach(path_nb:Param("Path to notebook"),
+                 dest:Param("Destination folder", str)="",
+                 use_img:Param("Convert markdown images to img tags", bool_arg)=False,
+                 replace:Param("Write replacement notebook back to `path_bn`", bool_arg)=True):
     "Export cell attachments to `dest` and update references"
     path_nb = Path(path_nb)
     if not dest: dest = f'{path_nb.stem}_files'
@@ -661,6 +628,47 @@ def nb_detach_cells(path_nb, dest=None, replace=True, use_img=False):
     for o in atts: o['source'] = _nb_detach_cell(o, dest, use_img)
     if atts and replace: json.dump(j, path_nb.open('w'))
     if not replace: return j
+
+# Cell
+_re_index = re.compile(r'^(?:\d*_|)index\.ipynb$')
+
+# Cell
+def make_readme():
+    "Convert the index notebook to README.md"
+    index_fn = None
+    for f in Config().path("nbs_path").glob('*.ipynb'):
+        if _re_index.match(f.name): index_fn = f
+    assert index_fn is not None, "Could not locate index notebook"
+    print(f"converting {index_fn} to README.md")
+    convert_md(index_fn, Config().config_file.parent, jekyll=False)
+    n = Config().config_file.parent/index_fn.with_suffix('.md').name
+    shutil.move(n, Config().config_file.parent/'README.md')
+    if Path(Config().config_file.parent/'PRE_README.md').is_file():
+        with open(Config().config_file.parent/'README.md', 'r') as f: readme = f.read()
+        with open(Config().config_file.parent/'PRE_README.md', 'r') as f: pre_readme = f.read()
+        with open(Config().config_file.parent/'README.md', 'w') as f: f.write(f'{pre_readme}\n{readme}')
+
+# Cell
+@call_parse
+def nbdev_build_docs(fname:Param("A notebook name or glob to convert", str)=None,
+                     force_all:Param("Rebuild even notebooks that haven't changed", bool_arg)=False,
+                     mk_readme:Param("Also convert the index notebook to README", bool_arg)=True,
+                     n_workers:Param("Number of workers to use", int)=None,
+                     pause:Param("Pause time (in secs) between notebooks to avoid race conditions", float)=0.5):
+    "Build the documentation by converting notebooks mathing `fname` to html"
+    notebook2html(fname=fname, force_all=force_all, n_workers=n_workers, pause=pause)
+    if fname is None: make_sidebar()
+    if mk_readme: make_readme()
+
+# Cell
+@call_parse
+def nbdev_nb2md(fname:Param("A notebook file name to convert", str),
+                dest:Param("The destination folder", str)='.',
+                img_path:Param("Folder to export images to")="",
+                jekyll:Param("To use jekyll metadata for your markdown file or not", bool_arg)=False,):
+    "Convert the notebook in `fname` to a markdown file"
+    nbdev_detach(fname, dest=img_path)
+    convert_md(fname, dest, jekyll=jekyll, img_path=img_path)
 
 # Cell
 import time,random,warnings
@@ -696,9 +704,9 @@ def _get_title(fname):
 def _create_default_sidebar():
     "Create the default sidebar for the docs website"
     dic = {"Overview": "/"}
-    files = [f for f in Config().nbs_path.glob('*.ipynb') if not f.name.startswith('_')]
+    files = [f for f in Config().path("nbs_path").glob('**/*.ipynb') if f.name[0]!='_' and '.ipynb_checkpoints' not in f.parts]
     fnames = [_nb2htmlfname(f) for f in sorted(files)]
-    titles = [_get_title(f) for f in fnames if 'index' not in f.stem!='index']
+    titles = [_get_title(f) for f in fnames if f.stem!='index']
     if len(titles) > len(set(titles)): print(f"Warning: Some of your Notebooks use the same title ({titles}).")
     dic.update({_get_title(f):f'{f.name}' for f in fnames if f.stem!='index'})
     return dic
@@ -707,15 +715,15 @@ def _create_default_sidebar():
 def create_default_sidebar():
     "Create the default sidebar for the docs website"
     dic = {Config().lib_name: _create_default_sidebar()}
-    json.dump(dic, open(Config().doc_path/'sidebar.json', 'w'), indent=2)
+    json.dump(dic, open(Config().path("doc_path")/'sidebar.json', 'w'), indent=2)
 
 # Cell
 def make_sidebar():
     "Making sidebar for the doc website form the content of `doc_folder/sidebar.json`"
     cfg = Config()
-    if not (cfg.doc_path/'sidebar.json').exists() or cfg.get('custom_sidebar', 'False') == 'False':
+    if not (cfg.path("doc_path")/'sidebar.json').exists() or cfg.get('custom_sidebar', 'False') == 'False':
         create_default_sidebar()
-    sidebar_d = json.load(open(cfg.doc_path/'sidebar.json', 'r'))
+    sidebar_d = json.load(open(cfg.path("doc_path")/'sidebar.json', 'r'))
     res = _side_dict('Sidebar', sidebar_d)
     res = {'entries': [res]}
     res_s = yaml.dump(res, default_flow_style=False)
@@ -726,4 +734,4 @@ def make_sidebar():
 #################################################
 # Instead edit {'../../sidebar.json'}
 """+res_s
-    open(cfg.doc_path/'_data/sidebars/home_sidebar.yml', 'w').write(res_s)
+    open(cfg.path("doc_path")/'_data/sidebars/home_sidebar.yml', 'w').write(res_s)

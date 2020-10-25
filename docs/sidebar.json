@@ -1,6 +1,7 @@
 {
   "nbdev": {
     "Overview": "/",
+    "Tutorial": "tutorial.html",
     "Export to modules": "export.html",
     "Synchronize and diff": "sync.html",
     "Show doc": "showdoc.html",
@@ -10,7 +11,6 @@
     "Conda packaging": "conda.html",
     "Command line functions": "cli.html",
     "Clean notebooks": "clean.html",
-    "Setting up Search": "search.html",
-    "nbdev tutorial": "tutorial.html"
+    "Setting up Search": "search.html"
   }
 }

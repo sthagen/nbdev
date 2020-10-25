@@ -5,7 +5,7 @@ __all__ = ['rm_execution_count', 'clean_output_data_vnd', 'colab_json', 'clean_c
 
 # Cell
 import io,sys,json,glob
-from fastscript import call_parse,Param
+from fastcore.script import call_parse,Param
 from .imports import Config
 from pathlib import Path
 
@@ -78,7 +78,7 @@ def nbdev_clean_nbs(fname:Param("A notebook name or glob to convert", str)=None,
         _print_output(nb)
         return
     if fname is None:
-        try: path = Config().nbs_path
+        try: path = Config().path("nbs_path")
         except Exception as e: path = Path.cwd()
     files = path.glob('**/*.ipynb') if fname is None else glob.glob(fname)
     for f in files:
