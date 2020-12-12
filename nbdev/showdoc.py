@@ -89,7 +89,7 @@ _re_backticks = re.compile(r"""
 
 # Cell
 def add_doc_links(text, elt=None):
-    "Search for doc links for any item between backticks in `text` and isnter them"
+    "Search for doc links for any item between backticks in `text` and insert them"
     def _replace_link(m):
         try:
             if m.group(2) in inspect.signature(elt).parameters: return f'`{m.group(2)}`'
@@ -284,7 +284,7 @@ def get_doc_link(func):
         nbdev_mod = importlib.import_module(mod.__package__.split('.')[0] + '._nbdev')
         try_pack = source_nb(func, mod=nbdev_mod)
         if try_pack:
-            page = '.'.join(try_pack.split('_')[1:]).replace('.ipynb', '')
+            page = '.'.join(try_pack.partition('_')[-1:]).replace('.ipynb', '')
             return f'{nbdev_mod.doc_url}{page}#{qual_name(func)}'
     except: return None
 
