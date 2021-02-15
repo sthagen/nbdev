@@ -1,4 +1,4 @@
-__version__ = "1.1.6"
+__version__ = "1.1.12"
 
 from fastcore.imports import IN_IPYTHON
 from .imports import *

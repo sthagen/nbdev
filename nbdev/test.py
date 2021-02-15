@@ -106,10 +106,9 @@ def nbdev_test_nbs(fname:Param("A notebook name or glob to convert", str)=None,
                    pause:Param("Pause time (in secs) between notebooks to avoid race conditions", float)=0.5):
     "Test in parallel the notebooks matching `fname`, passing along `flags`"
     if flags is not None: flags = flags.split(' ')
-    if fname is None:
-        files = [f for f in Config().path("nbs_path").glob('*.ipynb') if not f.name.startswith('_')]
-    else: files = glob.glob(fname)
+    files = nbglob(fname)
     files = [Path(f).absolute() for f in sorted(files)]
+    assert len(files) > 0, "No files to test found."
     if n_workers is None: n_workers = 0 if len(files)==1 else min(num_cpus(), 8)
     # make sure we are inside the notebook folder of the project
     os.chdir(Config().path("nbs_path"))
@@ -127,7 +126,7 @@ def nbdev_test_nbs(fname:Param("A notebook name or glob to convert", str)=None,
 @call_parse
 def nbdev_read_nbs(fname:Param("A notebook name or glob to convert", str)=None):
     "Check all notebooks matching `fname` can be opened"
-    files = Config().path("nbs_path").glob('**/*.ipynb') if fname is None else glob.glob(fname)
+    files = nbglob(fname, recursive=True if fname is None else False)
     for nb in files:
         try: _ = read_nb(nb)
         except Exception as e:

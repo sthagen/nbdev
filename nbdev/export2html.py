@@ -142,8 +142,13 @@ _re_image = re.compile(r"""
 
 # Cell
 def _img2jkl(d, h, jekyll=True):
-    if not jekyll: return '<img ' + h.attrs2str() + '>'
-    if 'width' in d: d['max-width'] = d.pop('width')
+    if d.get("src","").startswith("http"): jekyll=False
+    if jekyll:
+        if 'width' in d: d['max-width'] = d.get('width')
+    else:
+        if 'width' in d: d['style'] = f'max-width: {d.get("width")}px'
+        d.pop('align','')
+        return '<img ' + h.attrs2str() + '>'
     if 'src' in d:   d['file'] = d.pop('src')
     return '{% include image.html ' + h.attrs2str() + ' %}'
 
@@ -459,23 +464,24 @@ def write_tmpl(tmpl, nms, cfg, dest):
     if dest.exists(): return
     vs = {o:cfg.d[o] for o in nms.split()}
     outp = tmpl.format(**vs)
-    dest.write_text(outp)
+    dest.mk_write(outp)
 
 # Cell
 def write_tmpls():
     "Write out _config.yml and _data/topnav.yml using templates"
     cfg = Config()
     path = Path(cfg.get('doc_src_path', cfg.path("doc_path")))
-    write_tmpl(config_tmpl, 'user lib_name title copyright description', cfg, path/'_config.yml')
+    write_tmpl(config_tmpl, 'user lib_name title copyright description recursive', cfg, path/'_config.yml')
     write_tmpl(topnav_tmpl, 'host git_url', cfg, path/'_data'/'topnav.yml')
     write_tmpl(makefile_tmpl, 'nbs_path lib_name', cfg, cfg.config_file.parent/'Makefile')
 
 # Cell
 @call_parse
-def nbdev_build_lib(fname:Param("A notebook name or glob to convert", str)=None):
+def nbdev_build_lib(fname:Param("A notebook name or glob to convert", str)=None,
+                    bare:Param("Omit nbdev annotation comments (may break some functionality).", store_true)=False):
     "Export notebooks matching `fname` to python modules"
     write_tmpls()
-    notebook2script(fname=fname)
+    notebook2script(fname=fname, bare=bare, recursive=Config().get('recursive', False))
 
 # Cell
 def nbdev_exporter(cls=HTMLExporter, template_file=None):
@@ -530,12 +536,7 @@ def _notebook2html(fname, cls=HTMLExporter, template_file=None, exporter=None, d
 def notebook2html(fname=None, force_all=False, n_workers=None, cls=HTMLExporter, template_file=None,
                   exporter=None, dest=None, pause=0, execute=True):
     "Convert all notebooks matching `fname` to html files"
-    if fname is None:
-        files = [f for f in Config().path("nbs_path").glob('**/*.ipynb')
-                 if not f.name.startswith('_') and not '/.' in f.as_posix()]
-    else:
-        p = Path(fname)
-        files = list(p.parent.glob(p.name))
+    files = nbglob(fname, recursive=True if fname is None else False)
     if len(files)==1:
         force_all = True
         if n_workers is None: n_workers=0
@@ -548,6 +549,7 @@ def notebook2html(fname=None, force_all=False, n_workers=None, cls=HTMLExporter,
                 files.append(fname)
     if len(files)==0: print("No notebooks were modified")
     else:
+        if sys.platform == "win32": n_workers = 0
         passed = parallel(_notebook2html, files, n_workers=n_workers, cls=cls,
                           template_file=template_file, exporter=exporter, dest=dest, pause=pause, execute=execute)
         if not all(passed):
@@ -704,7 +706,7 @@ def _get_title(fname):
 def _create_default_sidebar():
     "Create the default sidebar for the docs website"
     dic = {"Overview": "/"}
-    files = [f for f in Config().path("nbs_path").glob('**/*.ipynb') if f.name[0]!='_' and '.ipynb_checkpoints' not in f.parts]
+    files = nbglob(recursive=Config().get('recursive',None))
     fnames = [_nb2htmlfname(f) for f in sorted(files)]
     titles = [_get_title(f) for f in fnames if f.stem!='index']
     if len(titles) > len(set(titles)): print(f"Warning: Some of your Notebooks use the same title ({titles}).")
@@ -734,4 +736,5 @@ def make_sidebar():
 #################################################
 # Instead edit {'../../sidebar.json'}
 """+res_s
-    open(cfg.path("doc_path")/'_data/sidebars/home_sidebar.yml', 'w').write(res_s)
+    pth = cfg.path("doc_path")/'_data/sidebars/home_sidebar.yml'
+    pth.mk_write(res_s)

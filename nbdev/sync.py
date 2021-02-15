@@ -68,6 +68,7 @@ def _split(code):
 # Cell
 def relimport2name(name, mod_name):
     "Unwarps a relative import in `name` according to `mod_name`"
+    mod_name = str(Path(mod_name))
     if mod_name.endswith('.py'): mod_name = mod_name[:-3]
     mods = mod_name.split(os.path.sep)
     i = last_index(Config().lib_name, mods)
@@ -119,17 +120,17 @@ def _script2notebook(fname, dic, silent=False):
 
 # Cell
 @call_parse
-def nbdev_update_lib(fname:Param("A notebook name or glob to convert", str)=None,
+def nbdev_update_lib(fname:Param("A python filename or glob to convert", str)=None,
                      silent:Param("Don't print results", bool_arg)=False):
     "Propagates any change in the modules matching `fname` to the notebooks that created them"
+    if fname and fname.endswith('.ipynb'): raise ValueError("`nbdev_update_lib` operates on .py files.  If you wish to convert notebooks instead, see `nbdev_build_lib`.")
     if os.environ.get('IN_TEST',0): return
     dic = notebook2script(silent=True, to_dict=True)
     exported = get_nbdev_module().modules
 
-    if fname is None:
-        files = [f for f in Config().path("lib_path").glob('**/*.py') if str(f.relative_to(Config().path("lib_path"))) in exported]
-    else: files = glob.glob(fname)
-    [ _script2notebook(f, dic, silent=silent) for f in files]
+    files = nbglob(fname, extension='.py', config_key='lib_path')
+    files = files.filter(lambda x: str(x.relative_to(Config().path("lib_path"))) in exported)
+    files.map(partial(_script2notebook, dic=dic, silent=silent))
 
 # Cell
 import subprocess
@@ -139,13 +140,14 @@ from distutils.dir_util import copy_tree
 @call_parse
 def nbdev_diff_nbs():
     "Prints the diff between an export of the library in notebooks and the actual modules"
-    lib_folder = Config().path("lib_path")
+    cfg = Config()
+    lib_folder = cfg.path("lib_path")
     with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
-        copy_tree(Config().path("lib_path"), d1)
-        notebook2script(silent=True)
-        copy_tree(Config().path("lib_path"), d2)
-        shutil.rmtree(Config().path("lib_path"))
-        shutil.copytree(d1, str(Config().path("lib_path")))
+        copy_tree(cfg.path("lib_path"), d1)
+        notebook2script(silent=True, recursive=cfg.get('recursive', False))
+        copy_tree(cfg.path("lib_path"), d2)
+        shutil.rmtree(cfg.path("lib_path"))
+        shutil.copytree(d1, str(cfg.path("lib_path")))
         for d in [d1, d2]:
             if (Path(d)/'__pycache__').exists(): shutil.rmtree(Path(d)/'__pycache__')
         res = subprocess.run(['diff', '-ru', d1, d2], stdout=subprocess.PIPE)
@@ -158,7 +160,7 @@ def nbdev_trust_nbs(fname:Param("A notebook name or glob to convert", str)=None,
     "Trust notebooks matching `fname`"
     check_fname = Config().path("nbs_path")/".last_checked"
     last_checked = os.path.getmtime(check_fname) if check_fname.exists() else None
-    files = Config().path("nbs_path").glob('**/*.ipynb') if fname is None else glob.glob(fname)
+    files = nbglob(fname)
     for fn in files:
         if last_checked and not force_all:
             last_changed = os.path.getmtime(fn)

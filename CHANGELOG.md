@@ -2,6 +2,30 @@
 
 <!-- do not remove -->
 
+## 1.1.12
+
+### New Features
+
+- `nbdev_new` should grab files from a release asset in `nbdev_template` ([#383](https://github.com/fastai/nbdev/issues/383))
+- Use Jekyll Theme instead of vendoring all required files ([#379](https://github.com/fastai/nbdev/issues/379))
+- Create relevant directories in `docs/_data` if do not already exist ([#377](https://github.com/fastai/nbdev/issues/377))
+
+
+## 1.1.6
+
+### New Features
+
+- Clean Google Colab metadata and line endings ([#364](https://github.com/fastai/nbdev/pull/364)), thanks to [@muellerzr](https://github.com/muellerzr)
+- add ability to find notebooks recursively ([#359](https://github.com/fastai/nbdev/pull/359)), thanks to [@hamelsmu](https://github.com/hamelsmu)
+- Add `bare` flag to `nbdev_build_lib` ([#336](https://github.com/fastai/nbdev/issues/336))
+- install git hooks in `nbdev_new` ([#308](https://github.com/fastai/nbdev/issues/308))
+- `nbdev_new` now works on an existing cloned repo, instead of creating a new repo ([#307](https://github.com/fastai/nbdev/issues/307))
+
+### Bugs Squashed
+
+- `nbdev_update_lib --fname notebook.ipynb` crashes (while `nbdev_update_lib` works) ([#341](https://github.com/fastai/nbdev/issues/341))
+- Copy new files only if they don't exist for nbdev_new ([#309](https://github.com/fastai/nbdev/issues/309))
+
 
 ## 1.1.3
 
@@ -74,23 +98,17 @@
 ### New Features
 
 - Magic flags for tests ([#232](https://github.com/fastai/nbdev/pull/232))
-  - See [the docs](https://nbdev.fast.ai/magic_flags.html) for details
-
 - Add ability to have Colab badges on pages ([#210](https://github.com/fastai/nbdev/pull/210))
-  - See [the docs](https://nbdev.fast.ai/#Google-Colab-Badges) for details
-
 - Support for `doc_path` ([#235](https://github.com/fastai/nbdev/pull/235))
-  - Place doc template in path pointed to by `doc_path` if you need your template in a different location to your built docs
 
 ### Bugs Squashed
 
 - Remove colab vendor specific tags which cause `nbdev_build_docs` to fail ([#207](https://github.com/fastai/nbdev/pull/207))
-
 - hooks folder inside .git must be manually created before `nbdev_install_git_hooks` ([#230](https://github.com/fastai/nbdev/pull/230))
-
 - updates to how backtick names are converted to doc links ([#218](https://github.com/fastai/nbdev/pull/218))
 
 ## Version 1.0.0
 
 - Initial release
+
 

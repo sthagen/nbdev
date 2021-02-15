@@ -11,6 +11,9 @@ from .export2html import *
 from .clean import *
 from .test import *
 from fastcore.script import *
+from ghapi.all import GhApi
+from urllib.error import HTTPError
+
 
 # Cell
 def bump_version(version, part=2):
@@ -73,11 +76,22 @@ _template_git_repo = "https://github.com/fastai/nbdev_template.git"
 
 # Cell
 import tarfile
-from urllib.request import urlopen
 
 # Cell
 def extract_tgz(url, dest='.'):
-    with urlopen(urlwrap(url)) as u: tarfile.open(mode='r:gz', fileobj=u).extractall(dest)
+    with urlopen(url) as u: tarfile.open(mode='r:gz', fileobj=u).extractall(dest)
+
+# Cell
+#hide
+def _get_branch(owner, repo, default='main'):
+    api = GhApi(owner=owner, repo=repo, token=os.getenv('GITHUB_TOKEN'))
+    try: return api.repos.get().default_branch
+    except HTTPError:
+        msg= [f"Could not access repo: {owner}/{repo} to find your default branch - `{default} assumed.\n",
+              "Edit `settings.ini` if this is incorrect.\n"
+              "In the future, you can allow nbdev to see private repos by setting the environment variable GITHUB_TOKEN as described here: https://nbdev.fast.ai/cli.html#Using-nbdev_new-with-private-repos \n",         ]
+        print(''.join(msg))
+        return default
 
 # Cell
 @call_parse
@@ -90,24 +104,22 @@ def nbdev_new():
     if not (author and email): raise Exception('User name and email not configured in git')
 
     # download and untar template, and optionally notebooks
-    FILES_URL = 'https://files.fast.ai/files/'
-    extract_tgz(f'{FILES_URL}nbdev_files.tgz')
+    tgnm = urljson('https://api.github.com/repos/fastai/nbdev_template/releases/latest')['tag_name']
+    FILES_URL = f"https://github.com/fastai/nbdev_template/archive/{tgnm}.tar.gz"
+    extract_tgz(FILES_URL)
     path = Path()
-    for o in (path/'nbdev_files').ls():
-        if not Path(f'./{o.name}').exists(): shutil.move(str(o), './')
-    shutil.rmtree('nbdev_files')
-    if first(path.glob('*.ipynb')): print("00_core.ipynb not downloaded since a notebook already exists.")
-    else: urlsave(f'{FILES_URL}00_core.ipynb')
-    if not (path/'index.ipynb').exists(): urlsave(f'{FILES_URL}index.ipynb')
+    nbexists = True if first(path.glob('*.ipynb')) else False
+    for o in (path/f'nbdev_template-{tgnm}').ls():
+        if o.name == '00_core.ipynb':
+            if not nbexists: shutil.move(str(o), './')
+        elif not Path(f'./{o.name}').exists(): shutil.move(str(o), './')
+    shutil.rmtree(f'nbdev_template-{tgnm}')
 
     # auto-config settings.ini from git
     settings_path = Path('settings.ini')
     settings = settings_path.read_text()
     owner,repo = repo_details(url)
-    branch = run('git symbolic-ref refs/remotes/origin/HEAD').strip().split('/')[-1]
+    branch = _get_branch(owner, repo)
     settings = settings.format(lib_name=repo, user=owner, author=author, author_email=email, branch=branch)
     settings_path.write_text(settings)
-
     nbdev_install_git_hooks()
-    if not (path/'LICENSE').exists() and not (path/'LICENSE.md').exists():
-        warnings.warn('No LICENSE file found - you will need one if you will create pypi or conda packages.')
